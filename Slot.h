@@ -1,4 +1,4 @@
-
+#include <memory>
 
 
 template <typename... Args>
@@ -24,8 +24,6 @@ public:
   {
     _callable(args...);
   }
-
-
 
 private:
   Callable _callable;
