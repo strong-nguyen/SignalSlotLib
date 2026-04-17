@@ -65,12 +65,14 @@ int main()
 	//	});
 
 	// Method 2: Using std::bind
-	downloader.ProgressSignal.connect(&listener1, &FileDownloadListener::OnDownloadProgressChanged);
+	int64_t id1 = downloader.ProgressSignal.connect(&listener1, &FileDownloadListener::OnDownloadProgressChanged);
 
 	UIListener ui;
-	downloader.ProgressSignal.connect(&ui, &UIListener::OnDownloadProgressChanged);
+	int64_t id2 = downloader.ProgressSignal.connect(&ui, &UIListener::OnDownloadProgressChanged);
 
+	downloader.Download();
 
+	downloader.ProgressSignal.disconnect(id2);
 	downloader.Download();
 	return 0;
 }
