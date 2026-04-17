@@ -4,8 +4,7 @@
 #include "Slot.h"
 #include "TaskQueue.h"
 
-#include <functional> // In the first version, we use std::function for faster impl => optimize later
-#include <list>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <atomic>
@@ -79,6 +78,17 @@ public:
       taskQueue));
 
     return slotId;
+  }
+
+  // Another overload accept a class member method
+  template <typename T>
+  int64_t queueConnect(T* receiver, void (T::* method)(Args...), TaskQueue* taskQueue)
+  {
+    if (!receiver)
+    {
+      return -1;
+    }
+    return queueConnect(std::bind_front(method, receiver), taskQueue);
   }
 
 
