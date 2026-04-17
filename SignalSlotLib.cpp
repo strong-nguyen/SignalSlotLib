@@ -3,6 +3,7 @@
 
 #include "SignalSlotLib.h"
 #include "Signal.h"
+#include "TaskQueue.h"
 
 #include <thread>
 #include <iostream>
@@ -73,6 +74,19 @@ int main()
 	downloader.Download();
 
 	downloader.ProgressSignal.disconnect(id2);
+
+	TaskQueue taskQueue;
+	std::thread t2([&taskQueue]()
+		{
+			taskQueue.run();
+		});
+
+	downloader.ProgressSignal.queueConnect([](int progress) {
+		std::cout << "Progress in queue connect: " << progress << std::endl;
+		}, &taskQueue);
+
 	downloader.Download();
+	taskQueue.stop();
+	t2.join();
 	return 0;
 }

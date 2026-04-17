@@ -1,8 +1,10 @@
 ﻿// SignalSlotLib.h : Include file for standard system include files,
 // or project specific include files.
 
-#pragma once
+#ifndef SIGNAL_SLOT_TEST_H
+#define SIGNAL_SLOT_TEST_H
 
 #include <iostream>
 
-// TODO: Reference additional headers your program requires here.
+
+#endif

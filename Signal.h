@@ -1,6 +1,8 @@
-#pragma once
+#ifndef SIGNAL_H
+#define SIGNAL_H
 
 #include "Slot.h"
+#include "TaskQueue.h"
 
 #include <functional> // In the first version, we use std::function for faster impl => optimize later
 #include <list>
@@ -43,7 +45,7 @@ public:
   }
 
   template <typename Callable>
-  int64_t connect(Callable &&slot)
+  int64_t connect(Callable&& slot)
   {
     int64_t slotId = IdGenerator::next();
 
@@ -56,14 +58,29 @@ public:
 
   // Another overload accept a class member method
   template <typename T>
-  int64_t connect(T *instance, void (T::*method)(Args...))
+  int64_t connect(T *receiver, void (T::*method)(Args...))
   {
-    if (!instance)
+    if (!receiver)
     {
       return -1;
     }
-    return connect(std::bind_front(method, instance));
+    return connect(std::bind_front(method, receiver));
   }
+
+  template <typename Callable>
+  int64_t queueConnect(Callable&& slot, TaskQueue* taskQueue)
+  {
+    int64_t slotId = IdGenerator::next();
+
+    // Use std::decay_t to remove Callable to the basic type one
+    _slots.emplace(slotId, new SlotImpl<std::decay_t<Callable>, Args...>(
+      std::forward<Callable>(slot),
+      ConnectionType::Queued,
+      taskQueue));
+
+    return slotId;
+  }
+
 
   // Disconnect a slot using slot id
   // return true if disconnect sucess, else false
@@ -88,7 +105,7 @@ public:
       tempSlots = _slots;
     }
 
-    // Currently, slot run sequently one by one in the same thread as signal
+    // Slot will be called and it will executed directly or in the task queue depends on the connection type
     for (const auto &[_, slot] : tempSlots)
     {
       slot->call(args...);
@@ -100,3 +117,5 @@ private:
 
   std::mutex _mutex;
 };
+
+#endif
