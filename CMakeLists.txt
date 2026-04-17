@@ -11,8 +11,11 @@ endif()
 
 project ("SignalSlotLib")
 
-# Add source to this project's executable.
-add_executable (SignalSlotLib "SignalSlotLib.cpp" "SignalSlotLib.h" "Signal.h"  "Slot.h" "TaskQueue.h")
+
+add_subdirectory(src)
+
+enable_testing()
+add_subdirectory(test)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET SignalSlotLib PROPERTY CXX_STANDARD 20)

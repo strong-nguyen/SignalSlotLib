@@ -1,7 +1,6 @@
 ﻿// SignalSlotLib.cpp : Defines the entry point for the application.
 //
 
-#include "SignalSlotLib.h"
 #include "Signal.h"
 #include "TaskQueue.h"
 
