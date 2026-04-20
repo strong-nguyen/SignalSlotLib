@@ -11,7 +11,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 # Declare test exe
-add_executable(unit_tests "Test_DirectConnect.cpp" "SignalContainer.h" "SignalContainer.cpp")
+add_executable(unit_tests "Test_DirectConnect.cpp" "SignalContainer.h" "SignalContainer.cpp" "Test_Disconnect.cpp" "Test_QueueConnect.cpp")
 
 # Link with gtest
 target_link_libraries(unit_tests GTest::gtest_main SignalSlotLib)

@@ -1,6 +1,10 @@
 #include <gtest/gtest.h>
 #include "SignalContainer.h"
 
+#include <thread>
+#include <vector>
+#include <atomic>
+
 
 TEST(DirectConnect, TestConnectSuccess)
 {
@@ -44,6 +48,42 @@ TEST(DirectConnect, TestExecuteSlot)
     }
     ++i;
     });
+  signalContainer.run();
+}
+
+TEST(DirectConnect, TestConnectMultiThread)
+{
+  SignalContainer signalContainer;
+
+  std::vector< std::unique_ptr<std::thread>> threads;
+  for (int i = 0; i < 10; ++i)
+  {
+    threads.push_back(std::make_unique<std::thread>([&signalContainer]() {
+      signalContainer.ProgressSignal.connect([](int progress)
+        {
+          static std::atomic<int> i = 0;
+          if (i / 10 == 0)
+          {
+            EXPECT_EQ(progress, 0);
+          }
+          else if (i / 10 == 1)
+          {
+            EXPECT_EQ(progress, 50);
+          }
+          else if (i / 10 == 2)
+          {
+            EXPECT_EQ(progress, 100);
+          }
+          ++i;
+        });
+      }));
+  }
+
+  for (const auto& t : threads)
+  {
+    t->join();
+  }
+
   signalContainer.run();
 }
 

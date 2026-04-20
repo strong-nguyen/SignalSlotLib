@@ -5,6 +5,7 @@
 #include <queue>
 #include <condition_variable>
 #include <mutex>
+#include <thread>
 
 
 class ITask
@@ -46,41 +47,51 @@ public:
 
   void run()
   {
-    while (true)
-    {
-      std::unique_ptr<ITask> task;
+    _workerThread = std::thread([this]()
       {
-        std::unique_lock<std::mutex> lock(_mutex);
-        _cv.wait(lock, [this]()
+        while (true)
+        {
+          std::unique_ptr<ITask> task;
           {
-            return !_tasks.empty() || _isStop;
-          });
+            std::unique_lock<std::mutex> lock(_mutex);
+            _cv.wait(lock, [this]()
+              {
+                return !_tasks.empty() || _isStop;
+              });
 
-        if (_isStop && _tasks.empty())
-        {
-          // Stop when run all of tasks
-          return;
+            if (_isStop && _tasks.empty())
+            {
+              // Stop when run all of tasks
+              return;
+            }
+
+            if (!_tasks.empty())
+            {
+              task = std::move(_tasks.front());
+              _tasks.pop();
+            }
+          }
+
+          if (task)
+          {
+            task->execute();
+          }
         }
-
-        if (!_tasks.empty())
-        {
-          task = std::move(_tasks.front());
-          _tasks.pop();
-        }
-      }
-
-      if (task)
-      {
-        task->execute();
-      }
-    }
+      });
   }
 
-  void stop()
+  void stop(bool waitUntilCompleted = false)
   {
-    std::lock_guard<std::mutex> lock(_mutex);
-    _isStop = true;
-    _cv.notify_all();
+    {
+      std::lock_guard<std::mutex> lock(_mutex);
+      _isStop = true;
+      _cv.notify_all();
+    }
+
+    if (waitUntilCompleted && _workerThread.joinable())
+    {
+      _workerThread.join();
+    }
   }
 
 
@@ -89,6 +100,7 @@ private:
   std::condition_variable _cv;
   std::mutex _mutex;
   bool _isStop = false;
+  std::thread _workerThread;
 };
 
 
